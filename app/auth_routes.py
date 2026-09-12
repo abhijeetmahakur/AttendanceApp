@@ -12,7 +12,7 @@ def index():
         return redirect(url_for("admin.dashboard"))
     if role == "student":
         return redirect(url_for("student.dashboard"))
-    return render_template("landing.html")
+    return redirect(url_for("auth.login"))
 
 
 @bp.route("/login", methods=["GET", "POST"])
