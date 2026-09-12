@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Attendance Reports{% endblock %}
+{% block content %}
+<h1>Attendance Reports</h1>
+
+<form method="get" class="form-grid" style="margin-bottom:16px;">
+    <div>
+        <label for="course">Filter by course</label>
+        <select id="course" name="course" onchange="this.form.submit()">
+            <option value="" {{ 'selected' if not course_filter }}>All courses</option>
+            {% for c in courses %}
+                <option value="{{ c }}" {{ 'selected' if c == course_filter }}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Reg No</th><th>Name</th><th>Course</th>
+                <th>Classes Held</th><th>Attended</th><th>Attendance</th><th>Suggestion</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            {% set s = row.summary %}
+            <tr>
+                <td>{{ row.student.reg_no }}</td>
+                <td>{{ row.student.name }}</td>
+                <td>{{ row.student.course }}</td>
+                <td>{{ s.total_classes }}</td>
+                <td>{{ s.attended_classes }}</td>
+                <td><span class="badge {{ 'badge-ok' if s.meets_threshold else 'badge-low' }}">{{ s.percentage }}%</span></td>
+                <td class="muted">
+                    {% if s.total_classes == 0 %}
+                        No classes yet
+                    {% elif s.meets_threshold %}
+                        Can skip {{ s.classes_can_skip }}
+                    {% else %}
+                        Attend next {{ s.classes_to_attend_for_threshold }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="7" class="muted">No students found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

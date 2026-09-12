@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:40px auto;">
+    <h2>Sign in</h2>
+    <div class="tabs">
+        <div class="tab-btn active" onclick="showTab('student')" id="tab-btn-student">Student</div>
+        <div class="tab-btn" onclick="showTab('admin')" id="tab-btn-admin">Admin</div>
+    </div>
+
+    <div class="tab-panel active" id="tab-student">
+        <form method="post" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="role" value="student">
+            <label for="reg_no">Registration Number</label>
+            <input type="text" id="reg_no" name="reg_no" required autofocus>
+            <br><br>
+            <label for="student_password">Password</label>
+            <input type="password" id="student_password" name="password" required>
+            <br><br>
+            <button type="submit">Login as Student</button>
+        </form>
+    </div>
+
+    <div class="tab-panel" id="tab-admin">
+        <form method="post" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="role" value="admin">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+            <br><br>
+            <label for="admin_password">Password</label>
+            <input type="password" id="admin_password" name="password" required>
+            <br><br>
+            <button type="submit">Login as Admin</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('tab-btn-' + name).classList.add('active');
+}
+</script>
+{% endblock %}

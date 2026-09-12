@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Class Sessions{% endblock %}
+{% block content %}
+<h1>Class Sessions</h1>
+<p class="muted">A class session defines the attendance window (date + start/end time) during which students of that course can mark themselves present.</p>
+
+<div class="card">
+    <h3>Create a new attendance window</h3>
+    <form method="post" class="form-grid">
+        <div>
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" required placeholder="e.g. Data Structures">
+        </div>
+        <div>
+            <label for="course">Course / Class</label>
+            <input type="text" id="course" name="course" required placeholder="e.g. CSE-3A">
+        </div>
+        <div>
+            <label for="session_date">Date</label>
+            <input type="date" id="session_date" name="session_date" required>
+        </div>
+        <div>
+            <label for="start_time">Opens At</label>
+            <input type="time" id="start_time" name="start_time" required>
+        </div>
+        <div>
+            <label for="end_time">Closes At</label>
+            <input type="time" id="end_time" name="end_time" required>
+        </div>
+        <div>
+            <button type="submit">Create Session</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>All Sessions</h3>
+    <table>
+        <thead>
+            <tr><th>Subject</th><th>Course</th><th>Date</th><th>Window</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for s in sessions %}
+            <tr>
+                <td>{{ s.subject }}</td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.session_date }}</td>
+                <td>{{ s.start_at.split(' ')[1][:5] }} - {{ s.end_at.split(' ')[1][:5] }}</td>
+                <td><span class="badge badge-{{ statuses[s.id] }}">{{ statuses[s.id] }}</span></td>
+                <td>
+                    <a class="btn secondary" href="{{ url_for('admin.session_report', session_id=s.id) }}">Report</a>
+                    <form class="inline" method="post" action="{{ url_for('admin.delete_session', session_id=s.id) }}"
+                          onsubmit="return confirm('Delete this session and its attendance records?');">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="muted">No class sessions yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

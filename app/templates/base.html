@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Attendance Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{{ url_for('auth.index') }}">Attendance System</a>
+        <nav>
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin.students') }}">Students</a>
+                <a href="{{ url_for('admin.sessions') }}">Class Sessions</a>
+                <a href="{{ url_for('admin.reports') }}">Reports</a>
+                <span class="whoami">{{ session.get('display_name') }} (admin)</span>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% elif session.get('role') == 'student' %}
+                <a href="{{ url_for('student.dashboard') }}">My Attendance</a>
+                <span class="whoami">{{ session.get('display_name') }} ({{ session.get('reg_no') }})</span>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Session Report{% endblock %}
+{% block content %}
+<h1>{{ session.subject }} &middot; {{ session.course }}</h1>
+<p class="muted">{{ session.session_date }}, window {{ session.start_at.split(' ')[1][:5] }} - {{ session.end_at.split(' ')[1][:5] }}</p>
+
+<div class="card">
+    <h3>Present ({{ attendees|length }})</h3>
+    <table>
+        <thead><tr><th>Reg No</th><th>Name</th><th>Marked At</th></tr></thead>
+        <tbody>
+        {% for a in attendees %}
+            <tr><td>{{ a.reg_no }}</td><td>{{ a.name }}</td><td>{{ a.marked_at }}</td></tr>
+        {% else %}
+            <tr><td colspan="3" class="muted">No one has marked attendance yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Absent ({{ absentees|length }})</h3>
+    <table>
+        <thead><tr><th>Reg No</th><th>Name</th></tr></thead>
+        <tbody>
+        {% for a in absentees %}
+            <tr><td>{{ a.reg_no }}</td><td>{{ a.name }}</td></tr>
+        {% else %}
+            <tr><td colspan="2" class="muted">Everyone in this course marked attendance.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a class="btn secondary" href="{{ url_for('admin.sessions') }}">Back to Sessions</a>
+{% endblock %}

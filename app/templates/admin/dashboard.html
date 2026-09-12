@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<div class="grid">
+    <div class="stat"><div class="value">{{ student_count }}</div><div class="label">Registered Students</div></div>
+    <div class="stat"><div class="value">{{ session_count }}</div><div class="label">Class Sessions</div></div>
+    <div class="stat"><div class="value">{{ open_count }}</div><div class="label">Currently Open Windows</div></div>
+    <div class="stat"><div class="value">{{ low_attendance|length }}</div><div class="label">Below {{ threshold|int }}%</div></div>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>Students below {{ threshold|int }}% attendance</h3>
+        <a class="btn secondary" href="{{ url_for('admin.reports') }}">Full report</a>
+    </div>
+    {% if low_attendance %}
+    <table>
+        <thead>
+            <tr><th>Reg No</th><th>Name</th><th>Course</th><th>Attendance</th><th>Attend next</th></tr>
+        </thead>
+        <tbody>
+        {% for row in low_attendance %}
+            <tr>
+                <td>{{ row.student.reg_no }}</td>
+                <td>{{ row.student.name }}</td>
+                <td>{{ row.student.course }}</td>
+                <td><span class="badge badge-low">{{ row.summary.percentage }}%</span></td>
+                <td>{{ row.summary.classes_to_attend_for_threshold }} class(es)</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No students are currently below the threshold.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>Quick actions</h3>
+    </div>
+    <p><a class="btn" href="{{ url_for('admin.students') }}">Manage Students</a>
+       <a class="btn secondary" href="{{ url_for('admin.sessions') }}">Manage Class Sessions</a></p>
+</div>
+{% endblock %}

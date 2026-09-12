@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}My Attendance{% endblock %}
+{% block content %}
+<h1>Welcome, {{ student.name }}</h1>
+<p class="muted">{{ student.reg_no }} &middot; {{ student.course }}</p>
+
+<div class="grid">
+    <div class="stat"><div class="value">{{ summary.total_classes }}</div><div class="label">Classes Held</div></div>
+    <div class="stat"><div class="value">{{ summary.attended_classes }}</div><div class="label">Classes Attended</div></div>
+    <div class="stat">
+        <div class="value {{ 'badge-ok' if summary.meets_threshold else 'badge-low' }}">{{ summary.percentage }}%</div>
+        <div class="label">Attendance</div>
+    </div>
+</div>
+
+<div class="card">
+    <p>{{ message }}</p>
+    <form method="post" action="{{ url_for('student.email_report') }}">
+        <button type="submit" class="secondary">Email me this summary</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Open attendance windows</h3>
+    {% if open_sessions %}
+    <table>
+        <thead><tr><th>Subject</th><th>Window</th><th></th></tr></thead>
+        <tbody>
+        {% for s in open_sessions %}
+            <tr>
+                <td>{{ s.subject }}</td>
+                <td>{{ s.start_at.split(' ')[1][:5] }} - {{ s.end_at.split(' ')[1][:5] }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('student.mark', session_id=s.id) }}">
+                        <button type="submit">Mark Attendance</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No attendance windows are open for you right now.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>My Attendance History</h3>
+    <table>
+        <thead><tr><th>Subject</th><th>Date</th><th>Marked At</th></tr></thead>
+        <tbody>
+        {% for h in history %}
+            <tr><td>{{ h.subject }}</td><td>{{ h.session_date }}</td><td>{{ h.marked_at }}</td></tr>
+        {% else %}
+            <tr><td colspan="3" class="muted">No attendance marked yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
