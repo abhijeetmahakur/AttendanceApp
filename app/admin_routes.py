@@ -85,6 +85,46 @@ def delete_student(student_id):
     return redirect(url_for("admin.students"))
 
 
+@bp.route("/students/<int:student_id>/edit", methods=["GET", "POST"])
+@admin_required
+def edit_student(student_id):
+    student = models.get_student_by_id(student_id)
+    if not student:
+        flash("Student not found.", "error")
+        return redirect(url_for("admin.students"))
+
+    if request.method == "POST":
+        reg_no = request.form.get("reg_no", "").strip()
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        course = request.form.get("course", "").strip()
+        new_password = request.form.get("password", "").strip()
+
+        # Re-render with what the admin typed (not the stale DB row) if validation fails.
+        form_state = {"id": student_id, "reg_no": reg_no, "name": name, "email": email, "course": course}
+
+        if not (reg_no and name and email and course):
+            flash("Registration number, name, email, and course are all required.", "error")
+            return render_template("admin/edit_student.html", student=form_state)
+
+        if models.reg_no_taken_by_other(reg_no, student_id):
+            flash(f"Registration number {reg_no} is already used by another student.", "error")
+            return render_template("admin/edit_student.html", student=form_state)
+
+        if new_password:
+            password_ok, password_error = validate_password(new_password)
+            if not password_ok:
+                flash(password_error, "error")
+                return render_template("admin/edit_student.html", student=form_state)
+            models.set_student_password(student_id, new_password)
+
+        models.update_student(student_id, reg_no, name, email, course)
+        flash(f"Updated {name} ({reg_no}).", "success")
+        return redirect(url_for("admin.students"))
+
+    return render_template("admin/edit_student.html", student=student)
+
+
 @bp.route("/sessions", methods=["GET", "POST"])
 @admin_required
 def sessions():

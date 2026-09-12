@@ -59,6 +59,7 @@
                     <span class="muted">({{ summary.attended_classes }}/{{ summary.total_classes }})</span>
                 </td>
                 <td>
+                    <a class="btn secondary" href="{{ url_for('admin.edit_student', student_id=s.id) }}">Edit</a>
                     <form class="inline" method="post" action="{{ url_for('admin.delete_student', student_id=s.id) }}"
                           onsubmit="return confirm('Remove this student and all their attendance records?');">
                         <button type="submit" class="danger">Remove</button>

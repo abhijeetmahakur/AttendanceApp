@@ -74,6 +74,24 @@ def delete_student(student_id):
     db.commit()
 
 
+def update_student(student_id, reg_no, name, email, course):
+    db = get_db()
+    db.execute(
+        """UPDATE students SET reg_no = ?, name = ?, email = ?, course = ?
+           WHERE id = ?""",
+        (reg_no.strip(), name.strip(), email.strip(), course.strip(), student_id),
+    )
+    db.commit()
+
+
+def reg_no_taken_by_other(reg_no, student_id):
+    db = get_db()
+    row = db.execute(
+        "SELECT 1 FROM students WHERE reg_no = ? AND id != ?", (reg_no.strip(), student_id)
+    ).fetchone()
+    return row is not None
+
+
 def set_student_password(student_id, new_password):
     db = get_db()
     db.execute(
