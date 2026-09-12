@@ -1,10 +1,9 @@
-import secrets
-
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 
 from . import models
 from .attendance_calc import compute_summary
 from .auth import admin_required
+from .validators import generate_password, validate_password
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -44,12 +43,16 @@ def students():
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
         course = request.form.get("course", "").strip()
-        password = request.form.get("password", "").strip() or secrets.token_urlsafe(6)
+        password = request.form.get("password", "").strip() or generate_password()
+
+        password_ok, password_error = validate_password(password)
 
         if not (reg_no and name and email and course):
             flash("Registration number, name, email, and course are all required.", "error")
         elif models.get_student_by_reg_no(reg_no):
             flash(f"A student with registration number {reg_no} already exists.", "error")
+        elif not password_ok:
+            flash(password_error, "error")
         else:
             models.create_student(reg_no, name, email, course, password)
             flash(

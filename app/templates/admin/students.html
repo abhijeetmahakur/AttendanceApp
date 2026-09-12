@@ -24,7 +24,13 @@
         </div>
         <div>
             <label for="password">Initial Password (optional)</label>
-            <input type="text" id="password" name="password" placeholder="auto-generated if blank">
+            <input type="text" id="password" name="password" placeholder="auto-generated if blank"
+                   minlength="8" pattern="[A-Za-z0-9!@#$%^&amp;*()_+\-=.,?]+"
+                   title="At least 8 characters: letters, numbers, and !@#$%^&amp;*()_+-=.,? are allowed">
+            <p class="muted" style="margin:4px 0 0;">
+                At least 8 characters, with letters and numbers; special characters
+                !@#$%^&amp;*()_+-=.,? are allowed. Leave blank to auto-generate one.
+            </p>
         </div>
         <div>
             <button type="submit">Register Student</button>
