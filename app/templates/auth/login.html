@@ -15,7 +15,10 @@
             <input type="text" id="reg_no" name="reg_no" required autofocus>
             <br><br>
             <label for="student_password">Password</label>
-            <input type="password" id="student_password" name="password" required>
+            <div class="password-field">
+                <input type="password" id="student_password" name="password" required>
+                <button type="button" class="toggle-password" data-target="student_password" aria-label="Show password"></button>
+            </div>
             <br><br>
             <button type="submit">Login as Student</button>
         </form>
@@ -28,7 +31,10 @@
             <input type="text" id="username" name="username" required>
             <br><br>
             <label for="admin_password">Password</label>
-            <input type="password" id="admin_password" name="password" required>
+            <div class="password-field">
+                <input type="password" id="admin_password" name="password" required>
+                <button type="button" class="toggle-password" data-target="admin_password" aria-label="Show password"></button>
+            </div>
             <br><br>
             <button type="submit">Login as Admin</button>
         </form>
