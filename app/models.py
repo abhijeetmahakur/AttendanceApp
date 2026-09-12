@@ -48,7 +48,7 @@ def list_students(course=None):
     db = get_db()
     if course:
         return db.execute(
-            "SELECT * FROM students WHERE course = ? ORDER BY reg_no", (course,)
+            "SELECT * FROM students WHERE course = ? COLLATE NOCASE ORDER BY reg_no", (course,)
         ).fetchall()
     return db.execute("SELECT * FROM students ORDER BY course, reg_no").fetchall()
 
@@ -81,9 +81,16 @@ def set_student_password(student_id, new_password):
 def distinct_courses():
     db = get_db()
     rows = db.execute(
-        "SELECT DISTINCT course FROM students UNION SELECT DISTINCT course FROM class_sessions ORDER BY 1"
+        "SELECT course FROM students UNION SELECT course FROM class_sessions"
     ).fetchall()
-    return [r["course"] for r in rows]
+    # Courses are matched case-insensitively everywhere else, so dedupe the
+    # same way here (keeping the first-seen casing) instead of listing
+    # "CSE" and "cse" as two different courses.
+    seen = {}
+    for r in rows:
+        key = r["course"].lower()
+        seen.setdefault(key, r["course"])
+    return sorted(seen.values(), key=str.lower)
 
 
 # ---------- Class sessions (attendance windows) ----------
@@ -113,7 +120,7 @@ def list_sessions(course=None):
     db = get_db()
     if course:
         return db.execute(
-            "SELECT * FROM class_sessions WHERE course = ? ORDER BY start_at DESC", (course,)
+            "SELECT * FROM class_sessions WHERE course = ? COLLATE NOCASE ORDER BY start_at DESC", (course,)
         ).fetchall()
     return db.execute("SELECT * FROM class_sessions ORDER BY start_at DESC").fetchall()
 
@@ -132,7 +139,7 @@ def count_sessions_for_course(course, up_to=None):
     db = get_db()
     up_to = up_to or now_str()
     return db.execute(
-        "SELECT COUNT(*) AS c FROM class_sessions WHERE course = ? AND start_at <= ?",
+        "SELECT COUNT(*) AS c FROM class_sessions WHERE course = ? COLLATE NOCASE AND start_at <= ?",
         (course, up_to),
     ).fetchone()["c"]
 
@@ -163,7 +170,7 @@ def count_attendance_for_student(student_id, course=None):
         return db.execute(
             """SELECT COUNT(*) AS c FROM attendance a
                JOIN class_sessions s ON s.id = a.session_id
-               WHERE a.student_id = ? AND s.course = ?""",
+               WHERE a.student_id = ? AND s.course = ? COLLATE NOCASE""",
             (student_id, course),
         ).fetchone()["c"]
     return db.execute(
@@ -200,7 +207,7 @@ def open_sessions_for_course(course):
     at = now_str()
     return db.execute(
         """SELECT * FROM class_sessions
-           WHERE course = ? AND ? BETWEEN start_at AND end_at
+           WHERE course = ? COLLATE NOCASE AND ? BETWEEN start_at AND end_at
            ORDER BY start_at""",
         (course, at),
     ).fetchall()

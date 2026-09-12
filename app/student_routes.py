@@ -39,7 +39,7 @@ def mark(session_id):
     student = models.get_student_by_id(session["user_id"])
     sess = models.get_session_by_id(session_id)
 
-    if not sess or sess["course"] != student["course"]:
+    if not sess or sess["course"].lower() != student["course"].lower():
         flash("That class session is not available to you.", "error")
         return redirect(url_for("student.dashboard"))
 
