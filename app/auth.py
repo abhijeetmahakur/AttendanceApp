@@ -2,6 +2,8 @@ from functools import wraps
 
 from flask import flash, redirect, session, url_for
 
+from . import models
+
 
 def login_admin(admin_row):
     session.clear()
@@ -30,7 +32,8 @@ def current_role():
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if session.get("role") != "admin":
+        if session.get("role") != "admin" or not models.get_admin_by_id(session.get("user_id")):
+            session.clear()
             flash("Please log in as an admin to continue.", "error")
             return redirect(url_for("auth.login"))
         return view(*args, **kwargs)
@@ -41,8 +44,9 @@ def admin_required(view):
 def student_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if session.get("role") != "student":
-            flash("Please log in with your registration number to continue.", "error")
+        if session.get("role") != "student" or not models.get_student_by_id(session.get("user_id")):
+            session.clear()
+            flash("Your session is no longer valid (the account may have been removed). Please log in again.", "error")
             return redirect(url_for("auth.login"))
         return view(*args, **kwargs)
 
