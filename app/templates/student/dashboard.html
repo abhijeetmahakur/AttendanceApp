@@ -15,9 +15,7 @@
 
 <div class="card">
     <p>{{ message }}</p>
-    <form method="post" action="{{ url_for('student.email_report') }}">
-        <button type="submit" class="secondary">Email me this summary</button>
-    </form>
+    <p class="muted">An email with this summary is sent to you automatically each time you mark attendance.</p>
 </div>
 
 <div class="card">

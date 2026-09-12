@@ -54,25 +54,13 @@ def mark(session_id):
     models.mark_attendance(session_id, student["id"])
 
     summary = _current_summary(student)
-    mailer.send_attendance_email(student, summary)
+    email_sent = mailer.send_attendance_email(student, summary)
 
+    email_note = " A summary email has been sent." if email_sent else " (The summary email could not be sent - contact the admin.)"
     flash(
         f"Attendance marked for {sess['subject']}. Current attendance: {summary.percentage}%. "
         + summary_message(summary)
-        + " A summary email has been sent.",
+        + email_note,
         "success",
     )
-    return redirect(url_for("student.dashboard"))
-
-
-@bp.route("/email-report", methods=["POST"])
-@student_required
-def email_report():
-    student = models.get_student_by_id(session["user_id"])
-    summary = _current_summary(student)
-    sent = mailer.send_attendance_email(student, summary)
-    if sent:
-        flash("Attendance summary emailed to you.", "success")
-    else:
-        flash("Could not send the email right now, but here is your summary: " + summary_message(summary), "error")
     return redirect(url_for("student.dashboard"))
