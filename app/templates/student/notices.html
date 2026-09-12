@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Notices{% endblock %}
+{% block content %}
+<h1>Notices</h1>
+<p class="muted">Holiday and substitution notices from the college, newest first.</p>
+
+<div class="notification-list">
+    {% for n in notices %}
+    <div class="notification-item">
+        <div class="section-header" style="margin-bottom:6px;">
+            <strong>{{ n.title }}</strong>
+            <span class="badge">{{ n.category|title }}</span>
+        </div>
+        <div>{{ n.message }}</div>
+        <span class="notif-time">{{ n.created_at }}</span>
+    </div>
+    {% else %}
+    <p class="muted">No notices yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

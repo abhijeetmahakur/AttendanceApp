@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Leave Status{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Leave Status</h1>
+    <a class="btn" href="{{ url_for('student.leave_apply') }}">Apply for Leave</a>
+</div>
+<p class="muted">Track the status of the leave requests you have submitted.</p>
+
+{% if leave_requests %}
+<div class="grid leave-grid">
+    {% for lr in leave_requests %}
+    <div class="card">
+        <div class="section-header">
+            <h3>LR-{{ "%06d"|format(lr.id) }}</h3>
+            {% if lr.status == 'pending' %}
+                <span class="badge badge-pending">🟡 Pending</span>
+            {% elif lr.status == 'approved' %}
+                <span class="badge badge-approved">🟢 Approved</span>
+            {% else %}
+                <span class="badge badge-rejected">🔴 Rejected</span>
+            {% endif %}
+        </div>
+        <p class="muted" style="margin: 0;">{{ lr.leave_type }} Leave</p>
+
+        <dl class="kv">
+            <div><dt>Dates</dt><dd>{{ lr.start_date }} &rarr; {{ lr.end_date }}</dd></div>
+            <div><dt>Days</dt><dd>{{ lr.num_days }}</dd></div>
+            <div><dt>Submitted</dt><dd>{{ lr.created_at }}</dd></div>
+        </dl>
+
+        <p style="margin: 12px 0 0;"><strong>Reason:</strong> {{ lr.reason }}</p>
+
+        {% if lr.attachment_path %}
+        <p style="margin: 10px 0 0;">
+            <a href="{{ url_for('student.leave_attachment', leave_id=lr.id) }}">📎 View attachment</a>
+        </p>
+        {% endif %}
+
+        {% if lr.status == 'rejected' and lr.admin_comment %}
+        <p class="flash flash-error" style="margin: 12px 0 0;">
+            <strong>Rejection reason:</strong> {{ lr.admin_comment }}
+        </p>
+        {% elif lr.status == 'approved' and lr.admin_comment %}
+        <p class="flash flash-success" style="margin: 12px 0 0;">
+            <strong>Admin note:</strong> {{ lr.admin_comment }}
+        </p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <p class="muted">You haven't submitted any leave requests yet.</p>
+</div>
+{% endif %}
+{% endblock %}

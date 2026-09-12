@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Holidays{% endblock %}
+{% block content %}
+<h1>Holiday Calendar</h1>
+<p class="muted">Minimum 75% attendance is mandatory in all units, including Sundays and the permissible optional holidays. Up to four optional holidays may be availed on any festive/commemorative day, subject to that requirement.</p>
+
+<div class="card">
+    <h3>Add a holiday</h3>
+    <form method="post" class="form-grid">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="holiday_date">Date</label>
+            <input type="date" id="holiday_date" name="holiday_date" required>
+        </div>
+        <div>
+            <label for="day_of_week">Day of the Week</label>
+            <select id="day_of_week" name="day_of_week" required>
+                {% for d in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                    <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="category">Category</label>
+            <select id="category" name="category">
+                <option value="mandatory">Mandatory</option>
+                <option value="optional">Optional</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Add Holiday</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Mandatory Holidays</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Date</th><th>Day</th><th></th></tr></thead>
+        <tbody>
+        {% for h in holidays if h.category == 'mandatory' %}
+            <tr>
+                <td>{{ h.name }}</td><td>{{ h.holiday_date }}</td><td>{{ h.day_of_week }}</td>
+                <td>
+                    <a class="btn secondary" href="{{ url_for('admin.notices') }}?category=holiday&title={{ h.name|urlencode }}">📢 Notify</a>
+                    <form class="inline" method="post" action="{{ url_for('admin.delete_holiday', holiday_id=h.id) }}">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="muted">None yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Optional Holidays</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Date</th><th>Day</th><th></th></tr></thead>
+        <tbody>
+        {% for h in holidays if h.category == 'optional' %}
+            <tr>
+                <td>{{ h.name }}</td><td>{{ h.holiday_date }}</td><td>{{ h.day_of_week }}</td>
+                <td>
+                    <a class="btn secondary" href="{{ url_for('admin.notices') }}?category=holiday&title={{ h.name|urlencode }}">📢 Notify</a>
+                    <form class="inline" method="post" action="{{ url_for('admin.delete_holiday', holiday_id=h.id) }}">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="muted">None yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

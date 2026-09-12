@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Sign-Up Requests{% endblock %}
+{% block content %}
+<h1>Sign-Up Requests</h1>
+<p class="muted">Students who have set a password and are waiting for a teacher to approve their account before they can log in.</p>
+
+<div class="card">
+    {% if signups %}
+    <table>
+        <thead><tr><th>Name</th><th>Registration No.</th><th>Roll No.</th><th>Course</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+        <tbody>
+        {% for s in signups %}
+            <tr>
+                <td>{{ s.name }}</td>
+                <td>{{ s.registration_no or s.reg_no }}</td>
+                <td>{{ s.roll_no or '-' }}</td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.email }}</td>
+                <td>{{ s.phone or '-' }}</td>
+                <td>
+                    <form class="inline" method="post" action="{{ url_for('admin.approve_signup', student_id=s.id) }}">
+                        <button type="submit">Approve</button>
+                    </form>
+                    <form class="inline" method="post" action="{{ url_for('admin.reject_signup', student_id=s.id) }}"
+                          onsubmit="return confirm('Reject this sign-up? The student can submit a new request afterwards.');">
+                        <button type="submit" class="danger">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No sign-up requests are waiting for approval.</p>
+    {% endif %}
+</div>
+{% endblock %}

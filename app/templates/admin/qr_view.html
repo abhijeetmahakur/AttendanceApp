@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Attendance QR{% endblock %}
+{% block content %}
+<h1>Attendance QR Code</h1>
+
+<div class="card qr-display">
+    <img src="{{ qr_image }}" alt="QR code for {{ qr.subject }}">
+    <h3 style="margin-top:14px;">Subject: {{ qr.subject }}</h3>
+    <div class="meta-row" style="justify-content:center;"><span>Class {{ qr.course }}</span><span>{{ qr.session_date }}</span><span>{{ qr.lecture }}</span></div>
+
+    {% if status == 'open' %}
+        <div class="qr-countdown" id="qr-countdown" data-remaining="{{ remaining_seconds }}">--:--</div>
+        <p class="muted">Expires in</p>
+        <span class="badge badge-open">🟢 Active</span>
+    {% elif status == 'upcoming' %}
+        <span class="badge badge-upcoming">Upcoming</span>
+    {% else %}
+        <span class="badge badge-closed">🔴 Expired</span>
+    {% endif %}
+
+    <p class="muted" style="margin-top:10px;">Code: <code>{{ qr.code }}</code></p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>Students Marked Present ({{ attendees|length }})</h3>
+        <a class="btn secondary" href="{{ url_for('admin.qr_view', qr_id=qr.qr_id) }}">Refresh</a>
+    </div>
+    {% if attendees %}
+    <table>
+        <thead><tr><th>Roll No</th><th>Registration No.</th><th>Name</th><th>Marked At</th></tr></thead>
+        <tbody>
+        {% for a in attendees %}
+            <tr><td>{{ a.roll_no or '-' }}</td><td>{{ a.registration_no or '-' }}</td><td>{{ a.name }}</td><td>{{ a.marked_at }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No one has scanned this QR code yet.</p>
+    {% endif %}
+</div>
+
+<p><a class="btn secondary" href="{{ url_for('admin.qr_generate') }}">Generate another QR</a>
+   <a class="btn secondary" href="{{ url_for('admin.qr_list') }}">QR session history</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var el = document.getElementById("qr-countdown");
+    if (!el) return;
+    var remaining = parseInt(el.getAttribute("data-remaining"), 10) || 0;
+
+    function render() {
+        var m = Math.floor(remaining / 60);
+        var s = remaining % 60;
+        el.textContent = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    render();
+    var timer = setInterval(function () {
+        remaining -= 1;
+        if (remaining <= 0) {
+            remaining = 0;
+            render();
+            clearInterval(timer);
+            window.location.reload();
+            return;
+        }
+        render();
+    }, 1000);
+})();
+</script>
+{% endblock %}

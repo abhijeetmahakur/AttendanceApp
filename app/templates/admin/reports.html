@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Attendance Reports{% endblock %}
 {% block content %}
-<h1>Attendance Reports</h1>
+<div class="section-header">
+    <h1>Attendance Reports</h1>
+    <a class="btn secondary" href="{{ url_for('admin.export_excel', course=course_filter) }}">📊 Export Excel</a>
+</div>
 
 <form method="get" class="form-grid" style="margin-bottom:16px;">
     <div>
@@ -19,20 +22,36 @@
     <table>
         <thead>
             <tr>
-                <th>Reg No</th><th>Name</th><th>Course</th>
-                <th>Classes Held</th><th>Attended</th><th>Attendance</th><th>Suggestion</th>
+                <th>Roll No</th><th>Registration No.</th><th>Name</th><th>Course</th>
+                <th>Classes Held</th><th>Attended</th><th>Attendance</th><th>Exam Eligible</th><th>Suggestion</th><th></th>
             </tr>
         </thead>
         <tbody>
         {% for row in rows %}
             {% set s = row.summary %}
             <tr>
-                <td>{{ row.student.reg_no }}</td>
+                <td>{{ row.student.roll_no or '-' }}</td>
+                <td>{{ row.student.registration_no or '-' }}</td>
                 <td>{{ row.student.name }}</td>
                 <td>{{ row.student.course }}</td>
                 <td>{{ s.total_classes }}</td>
                 <td>{{ s.attended_classes }}</td>
-                <td><span class="badge {{ 'badge-ok' if s.meets_threshold else 'badge-low' }}">{{ s.percentage }}%</span></td>
+                <td>
+                    {% if s.total_classes > 0 %}
+                        <span class="badge {{ 'badge-ok' if s.meets_threshold else 'badge-low' }}">{{ s.percentage }}%</span>
+                    {% else %}
+                        <span class="badge">No Data</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s.total_classes == 0 %}
+                        <span class="badge">No Data</span>
+                    {% elif row.exam_eligible %}
+                        <span class="badge badge-ok">Eligible</span>
+                    {% else %}
+                        <span class="badge badge-low">Ineligible</span>
+                    {% endif %}
+                </td>
                 <td class="muted">
                     {% if s.total_classes == 0 %}
                         No classes yet
@@ -42,11 +61,13 @@
                         Attend next {{ s.classes_to_attend_for_threshold }}
                     {% endif %}
                 </td>
+                <td><a class="btn secondary" href="{{ url_for('admin.export_pdf', student_id=row.student.id) }}">📄 PDF</a></td>
             </tr>
         {% else %}
-            <tr><td colspan="7" class="muted">No students found.</td></tr>
+            <tr><td colspan="10" class="muted">No students found.</td></tr>
         {% endfor %}
         </tbody>
     </table>
+    <p class="muted" style="margin-top:10px;">Exam eligibility requires at least {{ exam_threshold|int }}% attendance.</p>
 </div>
 {% endblock %}

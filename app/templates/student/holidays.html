@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Holidays{% endblock %}
+{% block content %}
+<h1>Holiday Calendar</h1>
+<p class="muted">Minimum 75% attendance is mandatory in all units, including Sundays and the permissible optional holidays. Up to four optional holidays may be availed on any festive/commemorative day, subject to that requirement.</p>
+
+<div class="card">
+    <h3>Mandatory Holidays</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Date</th><th>Day</th></tr></thead>
+        <tbody>
+        {% for h in holidays if h.category == 'mandatory' %}
+            <tr><td>{{ h.name }}</td><td>{{ h.holiday_date }}</td><td>{{ h.day_of_week }}</td></tr>
+        {% else %}
+            <tr><td colspan="3" class="muted">None listed yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Optional Holidays</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Date</th><th>Day</th></tr></thead>
+        <tbody>
+        {% for h in holidays if h.category == 'optional' %}
+            <tr><td>{{ h.name }}</td><td>{{ h.holiday_date }}</td><td>{{ h.day_of_week }}</td></tr>
+        {% else %}
+            <tr><td colspan="3" class="muted">None listed yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Manage Teachers{% endblock %}
+{% block content %}
+<h1>Manage Teachers</h1>
+<p class="muted">Create teacher accounts and assign each one the subject(s)/section(s) they teach. A teacher can only create class sessions, generate attendance QR codes, and send absentee alerts for their own assigned subjects.</p>
+
+<div class="card">
+    <h3>Create a teacher account</h3>
+    <form method="post" class="form-grid">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="email">Email (optional)</label>
+            <input type="email" id="email" name="email">
+        </div>
+        <div>
+            <label for="phone">Phone (optional)</label>
+            <input type="tel" id="phone" name="phone">
+        </div>
+        <div>
+            <label for="password">Initial Password (optional)</label>
+            <div class="password-field">
+                <input type="password" id="password" name="password" placeholder="auto-generated if blank" minlength="8">
+                <button type="button" class="toggle-password" data-target="password" aria-label="Show password"></button>
+            </div>
+        </div>
+        <div>
+            <button type="submit">Create Teacher</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>All Accounts</h3>
+    {% for t in teachers %}
+    <div class="card" style="background: var(--card-alt); margin-bottom: 12px;">
+        <div class="section-header">
+            <h3 style="margin:0;">
+                {{ t.username }}
+                {% if t.role == 'super_admin' %}<span class="badge badge-ok">Super Admin</span>{% else %}<span class="badge">Teacher</span>{% endif %}
+            </h3>
+            {% if t.role != 'super_admin' %}
+            <form method="post" action="{{ url_for('admin.delete_teacher', teacher_id=t.id) }}"
+                  onsubmit="return confirm('Remove this teacher account? Their sessions/QR history will remain.');">
+                <button type="submit" class="danger">Remove</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="meta-row" style="margin:4px 0 10px;"><span>{{ t.email or 'no email' }}</span><span>{{ t.phone or 'no phone' }}</span></div>
+
+        <p style="margin-bottom:6px;"><strong>Subjects:</strong></p>
+        {% if subjects_by_teacher[t.id] %}
+        <ul style="margin:0 0 10px; padding-left:18px;">
+            {% for a in subjects_by_teacher[t.id] %}
+            <li>
+                {{ a.subject }} in {{ a.course }}
+                <form class="inline" method="post" action="{{ url_for('admin.remove_teacher_subject_admin', teacher_id=t.id, assignment_id=a.id) }}">
+                    <button type="submit" class="secondary" style="padding:2px 8px; font-size:0.78rem;">Remove</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted" style="margin:0 0 10px;">No subjects assigned yet (can create sessions for any subject until assigned).</p>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('admin.assign_teacher_subject', teacher_id=t.id) }}" class="form-grid">
+            <div>
+                <label>Subject</label>
+                <input type="text" name="subject" placeholder="e.g. Data Structures" required>
+            </div>
+            <div>
+                <label>Class / Section</label>
+                <input type="text" name="course" placeholder="e.g. CSE-3A" required>
+            </div>
+            <div>
+                <button type="submit" class="secondary">Assign</button>
+            </div>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

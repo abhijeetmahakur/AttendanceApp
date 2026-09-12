@@ -10,6 +10,7 @@ def login_admin(admin_row):
     session["role"] = "admin"
     session["user_id"] = admin_row["id"]
     session["display_name"] = admin_row["username"]
+    session["admin_role"] = admin_row["role"]
 
 
 def login_student(student_row):
@@ -36,6 +37,26 @@ def admin_required(view):
             session.clear()
             flash("Please log in as an admin to continue.", "error")
             return redirect(url_for("auth.login"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def super_admin_required(view):
+    """Stricter than admin_required: only for actions a regular teacher
+    account shouldn't be able to do, like creating/removing other admin
+    accounts. Re-checks the role from the database rather than trusting
+    the session, in case it changed after login."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        admin = session.get("role") == "admin" and models.get_admin_by_id(session.get("user_id"))
+        if not admin:
+            session.clear()
+            flash("Please log in as an admin to continue.", "error")
+            return redirect(url_for("auth.login"))
+        if admin["role"] != "super_admin":
+            flash("Only a super admin can do that.", "error")
+            return redirect(url_for("admin.dashboard"))
         return view(*args, **kwargs)
 
     return wrapped

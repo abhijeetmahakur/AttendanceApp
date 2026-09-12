@@ -1,43 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+{% block title %}Sign In{% endblock %}
 {% block content %}
-<div class="card" style="max-width:420px;margin:40px auto;">
-    <h2>Sign in</h2>
-    <div class="tabs">
-        <div class="tab-btn active" onclick="showTab('student')" id="tab-btn-student">Student</div>
-        <div class="tab-btn" onclick="showTab('admin')" id="tab-btn-admin">Admin</div>
+<div class="auth-shell">
+    <div class="auth-intro">
+        <div class="roll-mark">No.</div>
+        <h1>One register, every class.</h1>
+        <p>Attendance, leave, and exam eligibility, kept in a single record for every student and every session.</p>
     </div>
 
-    <div class="tab-panel active" id="tab-student">
-        <form method="post" action="{{ url_for('auth.login') }}">
-            <input type="hidden" name="role" value="student">
-            <label for="reg_no">Registration Number</label>
-            <input type="text" id="reg_no" name="reg_no" required autofocus>
-            <br><br>
-            <label for="student_password">Password</label>
-            <div class="password-field">
-                <input type="password" id="student_password" name="password" required>
-                <button type="button" class="toggle-password" data-target="student_password" aria-label="Show password"></button>
-            </div>
-            <br><br>
-            <button type="submit">Login as Student</button>
-        </form>
-    </div>
+    <div class="auth-form-side">
+        <div class="tabs">
+            <div class="tab-btn active" onclick="showTab('student')" id="tab-btn-student">Student</div>
+            <div class="tab-btn" onclick="showTab('admin')" id="tab-btn-admin">Admin</div>
+        </div>
 
-    <div class="tab-panel" id="tab-admin">
-        <form method="post" action="{{ url_for('auth.login') }}">
-            <input type="hidden" name="role" value="admin">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-            <br><br>
-            <label for="admin_password">Password</label>
-            <div class="password-field">
-                <input type="password" id="admin_password" name="password" required>
-                <button type="button" class="toggle-password" data-target="admin_password" aria-label="Show password"></button>
-            </div>
-            <br><br>
-            <button type="submit">Login as Admin</button>
-        </form>
+        <div class="tab-panel active" id="tab-student">
+            <form method="post" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="role" value="student">
+                <label for="reg_no">Login ID</label>
+                <input type="text" id="reg_no" name="reg_no" required autofocus>
+                <br><br>
+                <label for="student_password">Password</label>
+                <div class="password-field">
+                    <input type="password" id="student_password" name="password" required>
+                    <button type="button" class="toggle-password" data-target="student_password" aria-label="Show password"></button>
+                </div>
+                <br><br>
+                <button type="submit">Log in</button>
+            </form>
+            <p class="muted" style="margin-top:12px;">
+                First time here? <a href="{{ url_for('auth.signup') }}">Sign up</a> to create your password.
+            </p>
+        </div>
+
+        <div class="tab-panel" id="tab-admin">
+            <form method="post" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="role" value="admin">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <br><br>
+                <label for="admin_password">Password</label>
+                <div class="password-field">
+                    <input type="password" id="admin_password" name="password" required>
+                    <button type="button" class="toggle-password" data-target="admin_password" aria-label="Show password"></button>
+                </div>
+                <br><br>
+                <button type="submit">Log in</button>
+            </form>
+        </div>
     </div>
 </div>
 

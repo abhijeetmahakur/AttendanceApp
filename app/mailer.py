@@ -43,3 +43,31 @@ def send_attendance_email(student, summary: AttendanceSummary):
         current_app.logger.warning("Failed to send attendance email to %s: %s", student["email"], exc)
         return False
     return True
+
+
+def send_notice_email(student, notice):
+    """Emails one student a holiday / substitution / general notice.
+    Returns True on success, False on failure (never raises)."""
+    category_label = {
+        "holiday": "Holiday Notice",
+        "substitution": "Class Substitution Notice",
+        "general": "Notice",
+    }.get(notice["category"], "Notice")
+
+    msg = Message(
+        subject=f"{category_label}: {notice['title']}",
+        recipients=[student["email"]],
+        body=(
+            f"Hi {student['name']},\n\n"
+            f"{notice['message']}\n\n"
+            f"- {current_app.config.get('COLLEGE_NAME', 'Attendance Management System')}"
+        ),
+        sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
+    )
+
+    try:
+        mail.send(msg)
+    except Exception as exc:  # noqa: BLE001 - one failed email shouldn't stop the rest of the notice run
+        current_app.logger.warning("Failed to send notice email to %s: %s", student["email"], exc)
+        return False
+    return True

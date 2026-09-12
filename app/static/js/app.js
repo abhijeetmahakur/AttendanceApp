@@ -62,8 +62,102 @@
         });
     }
 
+    function initLeaveDayCalculator() {
+        var startInput = document.getElementById("start_date");
+        var endInput = document.getElementById("end_date");
+        var daysInput = document.getElementById("num_days");
+        if (!startInput || !endInput || !daysInput) return;
+
+        function update() {
+            if (startInput.value) {
+                endInput.min = startInput.value;
+            }
+
+            if (!startInput.value || !endInput.value) {
+                daysInput.value = "";
+                endInput.setCustomValidity("");
+                return;
+            }
+
+            var start = new Date(startInput.value + "T00:00:00");
+            var end = new Date(endInput.value + "T00:00:00");
+
+            if (end < start) {
+                daysInput.value = "";
+                endInput.setCustomValidity("End date cannot be before the start date.");
+                return;
+            }
+
+            endInput.setCustomValidity("");
+            var diffDays = Math.round((end - start) / 86400000) + 1;
+            daysInput.value = diffDays + (diffDays === 1 ? " day" : " days");
+        }
+
+        startInput.addEventListener("change", update);
+        endInput.addEventListener("input", update);
+        update();
+    }
+
+    function initNavDropdowns() {
+        var dropdowns = document.querySelectorAll(".nav-dropdown");
+        dropdowns.forEach(function (dropdown) {
+            var toggle = dropdown.querySelector(".nav-dropdown-toggle");
+            var menu = dropdown.querySelector(".nav-dropdown-menu");
+            if (!toggle || !menu) return;
+
+            toggle.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var isOpen = !menu.hidden;
+                document.querySelectorAll(".nav-dropdown-menu").forEach(function (m) { m.hidden = true; });
+                menu.hidden = isOpen;
+            });
+        });
+
+        document.addEventListener("click", function () {
+            document.querySelectorAll(".nav-dropdown-menu").forEach(function (m) { m.hidden = true; });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                document.querySelectorAll(".nav-dropdown-menu").forEach(function (m) { m.hidden = true; });
+            }
+        });
+    }
+
+    function initPasswordConfirmation() {
+        var password = document.getElementById("password");
+        var confirm = document.getElementById("confirm_password");
+        if (!password || !confirm) return;
+
+        function check() {
+            confirm.setCustomValidity(confirm.value && confirm.value !== password.value ? "Passwords do not match." : "");
+        }
+
+        password.addEventListener("input", check);
+        confirm.addEventListener("input", check);
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         initThemeToggle();
         initPasswordToggles();
+        initLeaveDayCalculator();
+        initNavDropdowns();
+        initPasswordConfirmation();
     });
 })();
+
+// Lightweight toast notifications, usable from any page's inline scripts
+// (e.g. the QR scan result) without a full page reload / server-rendered flash.
+window.showToast = function (message, type, duration) {
+    var container = document.getElementById("toast-container");
+    if (!container) return;
+
+    var toast = document.createElement("div");
+    toast.className = "toast" + (type ? " toast-" + type : "");
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    window.setTimeout(function () {
+        toast.remove();
+    }, duration || 4500);
+};

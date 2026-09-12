@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Attendance Statistics{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Attendance Statistics</h1>
+    <a class="btn secondary" href="{{ url_for('admin.export_excel', **filters) }}">📊 Export Excel</a>
+</div>
+
+<div class="grid">
+    <div class="stat"><div class="value">{{ total_students }}</div><div class="label">Total Students</div></div>
+    <div class="stat"><div class="value">{{ total_classes }}</div><div class="label">Total Classes</div></div>
+    <div class="stat"><div class="value">{{ classes_conducted }}</div><div class="label">Classes Conducted</div></div>
+    <div class="stat"><div class="value">{{ data.overall_percentage }}%</div><div class="label">Average Attendance</div></div>
+    <div class="stat"><div class="value badge-ok">{{ data.students_above }}</div><div class="label">Students Above {{ threshold|int }}%</div></div>
+    <div class="stat"><div class="value badge-low">{{ data.students_below }}</div><div class="label">Students Below {{ threshold|int }}%</div></div>
+    <div class="stat"><div class="value badge-low">{{ data.students_at_risk }}</div><div class="label">Students at Risk</div></div>
+</div>
+
+<div class="card">
+    <h3>Filters</h3>
+    <form method="get" class="filter-bar">
+        <div>
+            <label for="course">Class / Section</label>
+            <select id="course" name="course">
+                <option value="" {{ 'selected' if not filters.course }}>All</option>
+                {% for c in courses %}
+                    <option value="{{ c }}" {{ 'selected' if c == filters.course }}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject">
+                <option value="" {{ 'selected' if not filters.subject }}>All</option>
+                {% for s in subjects %}
+                    <option value="{{ s }}" {{ 'selected' if s == filters.subject }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="student_id">Student</label>
+            <select id="student_id" name="student_id">
+                <option value="" {{ 'selected' if not filters.student_id }}>All</option>
+                {% for s in students %}
+                    <option value="{{ s.id }}" {{ 'selected' if filters.student_id == s.id|string }}>{{ s.name }} (Roll {{ s.roll_no or s.reg_no }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="start_date">From</label>
+            <input type="date" id="start_date" name="start_date" value="{{ filters.start_date }}">
+        </div>
+        <div>
+            <label for="end_date">To</label>
+            <input type="date" id="end_date" name="end_date" value="{{ filters.end_date }}">
+        </div>
+        <div>
+            <button type="submit">Apply Filters</button>
+        </div>
+        <div>
+            <a class="btn secondary" href="{{ url_for('admin.stats') }}">Clear</a>
+        </div>
+    </form>
+    <p class="muted">Note: "Class / Section" doubles as the class-section identifier used elsewhere in the app (e.g. "CSE-3A"); there is no separate semester field in this system.</p>
+</div>
+
+<div class="chart-grid">
+    <div class="card chart-card">
+        <h3>Overall Attendance</h3>
+        <canvas id="chart-overall" height="220"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Attendance by Subject</h3>
+        <canvas id="chart-subject" height="220"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Attendance by Student</h3>
+        <canvas id="chart-student" height="240"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Monthly Attendance Trend</h3>
+        <canvas id="chart-month" height="220"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3>By Student</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Roll No</th><th>Registration No.</th><th>Course</th><th>Total</th><th>Attended</th><th>Missed</th><th>%</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for row in data.by_student %}
+            <tr>
+                <td>{{ row.label }}</td>
+                <td>{{ row.roll_no or '-' }}</td>
+                <td>{{ row.registration_no or '-' }}</td>
+                <td>{{ row.course }}</td>
+                <td>{{ row.total }}</td>
+                <td>{{ row.attended }}</td>
+                <td>{{ row.missed }}</td>
+                <td>{{ row.percentage }}%</td>
+                <td><span class="badge badge-status-{{ row.status }}">{{ row.status|title }}</span></td>
+            </tr>
+        {% else %}
+            <tr><td colspan="9" class="muted">No data for the selected filters.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+(function () {
+    "use strict";
+
+    var overall = {{ { "attended": data.overall_attended, "missed": data.overall_missed }|tojson }};
+    var bySubject = {{ data.by_subject|tojson }};
+    var byStudent = {{ data.by_student|tojson }};
+    var byMonth = {{ data.by_month|tojson }};
+
+    var style = getComputedStyle(document.documentElement);
+    var accent = style.getPropertyValue("--accent").trim() || "#2f6feb";
+    var success = style.getPropertyValue("--success").trim() || "#1f9254";
+    var danger = style.getPropertyValue("--danger").trim() || "#d64545";
+    var textColor = style.getPropertyValue("--text").trim() || "#1f2430";
+    var gridColor = style.getPropertyValue("--border").trim() || "#dfe3e8";
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.borderColor = gridColor;
+
+    new Chart(document.getElementById("chart-overall"), {
+        type: "doughnut",
+        data: {
+            labels: ["Attended", "Missed"],
+            datasets: [{ data: [overall.attended, overall.missed], backgroundColor: [success, danger] }],
+        },
+        options: { plugins: { legend: { position: "bottom" } } },
+    });
+
+    new Chart(document.getElementById("chart-subject"), {
+        type: "bar",
+        data: {
+            labels: bySubject.map(function (r) { return r.label; }),
+            datasets: [{ label: "Attendance %", data: bySubject.map(function (r) { return r.percentage; }), backgroundColor: accent }],
+        },
+        options: { scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } },
+    });
+
+    new Chart(document.getElementById("chart-student"), {
+        type: "bar",
+        data: {
+            labels: byStudent.map(function (r) { return r.roll_no || r.reg_no; }),
+            datasets: [{ label: "Attendance %", data: byStudent.map(function (r) { return r.percentage; }), backgroundColor: accent }],
+        },
+        options: {
+            indexAxis: "y",
+            scales: { x: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } },
+        },
+    });
+
+    new Chart(document.getElementById("chart-month"), {
+        type: "line",
+        data: {
+            labels: byMonth.map(function (r) { return r.label; }),
+            datasets: [{ label: "Attendance %", data: byMonth.map(function (r) { return r.percentage; }), borderColor: accent, backgroundColor: accent, tension: 0.3 }],
+        },
+        options: { scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } },
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Leave Requests{% endblock %}
+{% block content %}
+<h1>Leave Requests</h1>
+<p class="muted">Review student leave requests and approve or reject them.</p>
+
+<div class="tabs">
+    <a class="tab-btn {{ 'active' if not status_filter }}" href="{{ url_for('admin.leaves') }}">
+        All ({{ counts.total }})
+    </a>
+    <a class="tab-btn {{ 'active' if status_filter == 'pending' }}" href="{{ url_for('admin.leaves', status='pending') }}">
+        Pending ({{ counts.pending }})
+    </a>
+    <a class="tab-btn {{ 'active' if status_filter == 'approved' }}" href="{{ url_for('admin.leaves', status='approved') }}">
+        Approved ({{ counts.approved }})
+    </a>
+    <a class="tab-btn {{ 'active' if status_filter == 'rejected' }}" href="{{ url_for('admin.leaves', status='rejected') }}">
+        Rejected ({{ counts.rejected }})
+    </a>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Request ID</th><th>Student</th><th>Course</th><th>Type</th>
+                <th>Dates</th><th>Days</th><th>Submitted</th><th>Status</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for lr in leave_requests %}
+            <tr>
+                <td>LR-{{ "%06d"|format(lr.id) }}</td>
+                <td>{{ lr.student_name }} ({{ lr.reg_no }})</td>
+                <td>{{ lr.course }}</td>
+                <td>{{ lr.leave_type }}</td>
+                <td>{{ lr.start_date }} &rarr; {{ lr.end_date }}</td>
+                <td>{{ lr.num_days }}</td>
+                <td>{{ lr.created_at }}</td>
+                <td>
+                    {% if lr.status == 'pending' %}
+                        <span class="badge badge-pending">🟡 Pending</span>
+                    {% elif lr.status == 'approved' %}
+                        <span class="badge badge-approved">🟢 Approved</span>
+                    {% else %}
+                        <span class="badge badge-rejected">🔴 Rejected</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a class="btn secondary" href="{{ url_for('admin.leave_detail', leave_id=lr.id) }}">Review</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="9" class="muted">No leave requests found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

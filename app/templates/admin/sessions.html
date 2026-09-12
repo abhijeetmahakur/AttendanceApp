@@ -9,7 +9,15 @@
     <form method="post" class="form-grid">
         <div>
             <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" required placeholder="e.g. Data Structures">
+            <select id="subject" name="subject" required>
+                <option value="" disabled selected>Select subject</option>
+                {% for subj in subjects %}
+                    <option value="{{ subj.subject_name }}">{{ subj.subject_name }}{% if subj.subject_code %} ({{ subj.subject_code }}){% endif %}</option>
+                {% endfor %}
+            </select>
+            {% if not subjects %}
+            <p class="muted" style="margin:4px 0 0;">No subjects found - add some under <a href="{{ url_for('admin.timetable_add') }}">Timetable</a> first.</p>
+            {% endif %}
         </div>
         <div>
             <label for="course">Course / Class</label>

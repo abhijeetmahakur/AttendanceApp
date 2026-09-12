@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Send Absentee Alert{% endblock %}
+{% block content %}
+<h1>Send Absentee Alert</h1>
+<div class="meta-row"><span>{{ class_session.subject }}</span><span>{{ class_session.course }}</span><span>{{ class_session.session_date }}</span></div>
+
+{% if not whatsapp_configured %}
+<div class="status-banner status-warning">
+    <strong>⚠️ WhatsApp isn't configured yet</strong>
+    The message will be logged to the server console instead of actually sent until Twilio credentials are set in .env.
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Absent ({{ absentees|length }})</h3>
+    <p>{{ absentees|map(attribute='reg_no')|join(', ') if absentees else 'No one is absent for this session.' }}</p>
+</div>
+
+{% if absentees %}
+<div class="card">
+    <form method="post">
+        <div class="form-grid">
+            <div>
+                <label for="group_id">Send to WhatsApp Group</label>
+                <select id="group_id" name="group_id" required>
+                    <option value="" disabled selected>Choose a group</option>
+                    {% for g in groups %}
+                        <option value="{{ g.id }}">{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="subject">Subject (you can edit this)</label>
+                <input type="text" id="subject" name="subject" value="{{ class_session.subject }}" required>
+            </div>
+        </div>
+        <div style="margin-top:12px;">
+            <label for="message">Message (you can edit this before sending)</label>
+            <textarea id="message" name="message" rows="6">{{ default_message }}</textarea>
+        </div>
+        <div style="margin-top:12px;">
+            <button type="submit">📱 Send Absentee Alert</button>
+        </div>
+    </form>
+    {% if not groups %}
+    <p class="muted" style="margin-top:10px;">
+        No WhatsApp groups exist for {{ class_session.course }} yet.
+        <a href="{{ url_for('admin.whatsapp_groups') }}">Create one first</a>
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+<a class="btn secondary" href="{{ url_for('admin.session_report', session_id=class_session.id) }}">&larr; Back to session report</a>
+{% endblock %}

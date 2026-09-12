@@ -4,6 +4,10 @@ skip to reach or maintain the configured threshold (default 75%)."""
 import math
 from dataclasses import dataclass
 
+# How many percentage points above the threshold still count as "Warning"
+# rather than fully "Safe" (e.g. 75-80% is a caution zone, not yet safe).
+WARNING_BAND = 5.0
+
 
 @dataclass
 class AttendanceSummary:
@@ -53,6 +57,22 @@ def compute_summary(total_classes: int, attended_classes: int, threshold: float 
         classes_to_attend_for_threshold=classes_to_attend,
         classes_can_skip=classes_can_skip,
     )
+
+
+def classify_status(percentage: float, threshold: float = 75.0) -> str:
+    """Returns 'critical' (below threshold), 'warning' (threshold to
+    threshold + WARNING_BAND), or 'safe' (comfortably above threshold)."""
+    if percentage < threshold:
+        return "critical"
+    if percentage < threshold + WARNING_BAND:
+        return "warning"
+    return "safe"
+
+
+def is_exam_eligible(percentage: float, eligibility_threshold: float = 33.0) -> bool:
+    """Minimum attendance required just to be allowed to sit an exam - a
+    lower bar than the day-to-day attendance threshold (default 75%)."""
+    return percentage >= eligibility_threshold
 
 
 def summary_message(summary: AttendanceSummary) -> str:

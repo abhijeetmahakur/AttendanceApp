@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Groups{% endblock %}
+{% block content %}
+<h1>WhatsApp Groups</h1>
+<p class="muted">A group is a saved list of phone numbers for a class/section (e.g. a class representative, or several parents' numbers). Absentee alerts and notices are sent to each number individually - the WhatsApp Business API has no way to post into a native WhatsApp group.</p>
+
+{% if not whatsapp_configured %}
+<div class="status-banner status-warning">
+    <strong>⚠️ WhatsApp isn't configured yet</strong>
+    Messages will be logged to the server console instead of actually sent until TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM are set in .env.
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Create a group</h3>
+    <form method="post" class="form-grid">
+        <div>
+            <label for="name">Group Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. CSE-3A Parents Group">
+        </div>
+        <div>
+            <label for="course">Class / Section</label>
+            <input type="text" id="course" name="course" required placeholder="e.g. CSE-3A">
+        </div>
+        <div>
+            <button type="submit">Create Group</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>All Groups</h3>
+    <table>
+        <thead><tr><th>Name</th><th>Class / Section</th><th></th></tr></thead>
+        <tbody>
+        {% for g in groups %}
+            <tr>
+                <td>{{ g.name }}</td>
+                <td>{{ g.course }}</td>
+                <td>
+                    <a class="btn secondary" href="{{ url_for('admin.whatsapp_group_detail', group_id=g.id) }}">Manage Members</a>
+                    <form class="inline" method="post" action="{{ url_for('admin.delete_whatsapp_group', group_id=g.id) }}"
+                          onsubmit="return confirm('Delete this WhatsApp group?');">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="3" class="muted">No WhatsApp groups yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

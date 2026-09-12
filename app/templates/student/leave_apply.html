@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Apply for Leave{% endblock %}
+{% block content %}
+<h1>Apply for Leave</h1>
+<p class="muted">Submit a leave request for approval. You can track its status afterwards from the Leave Status page.</p>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+        <div>
+            <label for="leave_type">Leave Type</label>
+            <select id="leave_type" name="leave_type" required>
+                <option value="" disabled {{ 'selected' if not form.get('leave_type') }}>Select leave type</option>
+                {% for lt in leave_types %}
+                    <option value="{{ lt }}" {{ 'selected' if form.get('leave_type') == lt }}>{{ lt }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="start_date">Start Date</label>
+            <input type="date" id="start_date" name="start_date" required value="{{ form.get('start_date', '') }}">
+        </div>
+        <div>
+            <label for="end_date">End Date</label>
+            <input type="date" id="end_date" name="end_date" required value="{{ form.get('end_date', '') }}">
+        </div>
+        <div>
+            <label for="num_days">Number of Days</label>
+            <input type="text" id="num_days" readonly placeholder="Auto-calculated">
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <label for="reason">Reason for Leave</label>
+            <textarea id="reason" name="reason" rows="4" required
+                      placeholder="Briefly describe the reason for your leave">{{ form.get('reason', '') }}</textarea>
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <label for="attachment">Supporting Document (optional)</label>
+            <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+            <p class="muted" style="margin: 4px 0 0;">PDF, Word document, or image, up to {{ max_attachment_mb }}MB.</p>
+        </div>
+        <div>
+            <button type="submit">Submit Leave Request</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

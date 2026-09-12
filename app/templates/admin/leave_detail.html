@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Review Leave Request{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Leave Request LR-{{ "%06d"|format(leave.id) }}</h1>
+    {% if leave.status == 'pending' %}
+        <span class="badge badge-pending">🟡 Pending</span>
+    {% elif leave.status == 'approved' %}
+        <span class="badge badge-approved">🟢 Approved</span>
+    {% else %}
+        <span class="badge badge-rejected">🔴 Rejected</span>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Student</h3>
+    <dl class="kv">
+        <div><dt>Name</dt><dd>{{ student.name if student else 'Unknown' }}</dd></div>
+        <div><dt>Roll No</dt><dd>{{ (student.roll_no or '-') if student else '-' }}</dd></div>
+        <div><dt>Registration No.</dt><dd>{{ (student.registration_no or '-') if student else '-' }}</dd></div>
+        <div><dt>Course</dt><dd>{{ student.course if student else '-' }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <h3>Leave Details</h3>
+    <dl class="kv">
+        <div><dt>Leave Type</dt><dd>{{ leave.leave_type }}</dd></div>
+        <div><dt>Dates</dt><dd>{{ leave.start_date }} &rarr; {{ leave.end_date }}</dd></div>
+        <div><dt>Number of Days</dt><dd>{{ leave.num_days }}</dd></div>
+        <div><dt>Submitted On</dt><dd>{{ leave.created_at }}</dd></div>
+    </dl>
+    <p style="margin: 12px 0 0;"><strong>Reason:</strong> {{ leave.reason }}</p>
+    {% if leave.attachment_path %}
+    <p style="margin: 10px 0 0;">
+        <a href="{{ url_for('admin.leave_attachment', leave_id=leave.id) }}">📎 View attachment</a>
+    </p>
+    {% endif %}
+</div>
+
+{% if leave.status == 'pending' %}
+<div class="card">
+    <h3>Decision</h3>
+    <form method="post" action="{{ url_for('admin.leave_decide', leave_id=leave.id) }}" id="leave-decision-form">
+        <label for="comment">Comment (required if rejecting)</label>
+        <textarea id="comment" name="comment" rows="3" placeholder="Optional note for the student"></textarea>
+        <div class="quick-actions" style="margin-top: 12px;">
+            <button type="submit" name="decision" value="approved">Approve</button>
+            <button type="submit" name="decision" value="rejected" class="danger">Reject</button>
+        </div>
+    </form>
+</div>
+<script>
+    (function () {
+        var form = document.getElementById("leave-decision-form");
+        if (!form) return;
+        var comment = document.getElementById("comment");
+        form.addEventListener("submit", function (e) {
+            var clicked = e.submitter;
+            if (clicked && clicked.value === "rejected" && !comment.value.trim()) {
+                e.preventDefault();
+                comment.focus();
+                alert("Please provide a reason for rejecting this leave request.");
+            }
+        });
+    })();
+</script>
+{% else %}
+<div class="card">
+    <h3>Reviewed</h3>
+    <dl class="kv">
+        <div><dt>Reviewed By</dt><dd>{{ reviewer.username if reviewer else '-' }}</dd></div>
+        <div><dt>Reviewed At</dt><dd>{{ leave.reviewed_at or '-' }}</dd></div>
+    </dl>
+    {% if leave.admin_comment %}
+    <p style="margin: 12px 0 0;"><strong>Comment:</strong> {{ leave.admin_comment }}</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<p><a class="btn secondary" href="{{ url_for('admin.leaves') }}">&larr; Back to all leave requests</a></p>
+{% endblock %}

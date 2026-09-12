@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Generate Attendance QR{% endblock %}
+{% block content %}
+<h1>Generate Attendance QR</h1>
+<p class="muted">Create a one-time QR code for a live lecture. Students scan it to mark themselves present; it stops working once the duration expires.</p>
+
+<div class="card">
+    <form method="post" class="form-grid">
+        <div>
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" required placeholder="e.g. Data Structures">
+        </div>
+        <div>
+            <label for="course">Class / Section</label>
+            <input type="text" id="course" name="course" required placeholder="e.g. CSE-3A">
+        </div>
+        <div>
+            <label for="session_date">Date</label>
+            <input type="date" id="session_date" name="session_date" required value="{{ today }}">
+        </div>
+        <div>
+            <label for="lecture">Lecture / Period</label>
+            <select id="lecture" name="lecture" required>
+                <option value="" disabled selected>Select period</option>
+                {% for p in lecture_periods %}
+                    <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="duration">Attendance Duration</label>
+            <select id="duration" name="duration" required>
+                {% for d in duration_choices %}
+                    <option value="{{ d }}" {{ 'selected' if d == default_duration }}>{{ d }} minute{{ 's' if d != 1 else '' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit">Generate QR Code</button>
+        </div>
+    </form>
+</div>
+
+<p><a class="btn secondary" href="{{ url_for('admin.qr_list') }}">&larr; View QR session history</a></p>
+{% endblock %}

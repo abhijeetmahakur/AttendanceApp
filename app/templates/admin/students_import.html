@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Import Students{% endblock %}
+{% block content %}
+<h1>Import Students from CSV</h1>
+<p class="muted">
+    Upload a roster CSV (e.g. a Google Form "Student Information Form" export). Expected columns:
+    a full-name column, a plain-integer roll-number column, and a 9-character registration-number column
+    - headers are matched flexibly, so slightly different wording is fine.
+</p>
+<ul class="muted" style="margin: 0 0 16px; padding-left: 18px;">
+    <li>A row whose registration number already belongs to an existing student updates that student's
+        roll number / registration number only - their login, password, and email are never touched.</li>
+    <li>A row for someone new creates an <strong>unclaimed</strong> roster entry with no password yet -
+        the student signs themselves up from the Sign Up page, and a teacher must approve it.</li>
+    <li>Rows with no name and no registration number, or missing a registration number, are skipped and
+        listed after the import so they can be fixed and added manually.</li>
+</ul>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+        <div>
+            <label for="course">Class / Section for these students</label>
+            <input type="text" id="course" name="course" list="course-list" required placeholder="e.g. CSE-3A">
+            <datalist id="course-list">
+                {% for c in courses %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+        </div>
+        <div>
+            <label for="csv_file">CSV File</label>
+            <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+        </div>
+        <div>
+            <button type="submit">Import</button>
+        </div>
+    </form>
+</div>
+
+<a class="btn secondary" href="{{ url_for('admin.students') }}">&larr; Back to Students</a>
+{% endblock %}

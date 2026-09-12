@@ -8,6 +8,7 @@
     <div class="stat"><div class="value">{{ session_count }}</div><div class="label">Class Sessions</div></div>
     <div class="stat"><div class="value">{{ open_count }}</div><div class="label">Currently Open Windows</div></div>
     <div class="stat"><div class="value">{{ low_attendance|length }}</div><div class="label">Below {{ threshold|int }}%</div></div>
+    <div class="stat"><div class="value badge-pending">{{ leave_counts.pending }}</div><div class="label">Pending Leave Requests</div></div>
 </div>
 
 <div class="card">
@@ -18,12 +19,13 @@
     {% if low_attendance %}
     <table>
         <thead>
-            <tr><th>Reg No</th><th>Name</th><th>Course</th><th>Attendance</th><th>Attend next</th></tr>
+            <tr><th>Roll No</th><th>Registration No.</th><th>Name</th><th>Course</th><th>Attendance</th><th>Attend next</th></tr>
         </thead>
         <tbody>
         {% for row in low_attendance %}
             <tr>
-                <td>{{ row.student.reg_no }}</td>
+                <td>{{ row.student.roll_no or '-' }}</td>
+                <td>{{ row.student.registration_no or '-' }}</td>
                 <td>{{ row.student.name }}</td>
                 <td>{{ row.student.course }}</td>
                 <td><span class="badge badge-low">{{ row.summary.percentage }}%</span></td>
@@ -41,7 +43,12 @@
     <div class="section-header">
         <h3>Quick actions</h3>
     </div>
-    <p><a class="btn" href="{{ url_for('admin.students') }}">Manage Students</a>
-       <a class="btn secondary" href="{{ url_for('admin.sessions') }}">Manage Class Sessions</a></p>
+    <div class="quick-actions">
+        <a class="btn" href="{{ url_for('admin.students') }}">Manage Students</a>
+        <a class="btn secondary" href="{{ url_for('admin.sessions') }}">Manage Class Sessions</a>
+        <a class="btn secondary" href="{{ url_for('admin.leaves') }}">Review Leave Requests</a>
+        <a class="btn secondary" href="{{ url_for('admin.stats') }}">Attendance Statistics</a>
+        <a class="btn secondary" href="{{ url_for('admin.qr_generate') }}">Generate Attendance QR</a>
+    </div>
 </div>
 {% endblock %}

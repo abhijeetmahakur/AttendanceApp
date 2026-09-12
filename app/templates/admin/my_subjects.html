@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}My Subjects{% endblock %}
+{% block content %}
+<h1>My Subjects</h1>
+<p class="muted">These are the subject/class-section combinations you're assigned to. You can only create class sessions, generate attendance QR codes, and send absentee alerts for the subjects listed here (until you add at least one, everything is unrestricted, so a brand new account isn't locked out).</p>
+
+<div class="card">
+    <h3>Add a subject you teach</h3>
+    <form method="post" class="form-grid">
+        <div>
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject" required>
+                <option value="" disabled selected>Select subject</option>
+                {% for subj in subjects %}
+                    <option value="{{ subj.subject_name }}">{{ subj.subject_name }}{% if subj.subject_code %} ({{ subj.subject_code }}){% endif %}</option>
+                {% endfor %}
+            </select>
+            {% if not subjects %}
+            <p class="muted" style="margin:4px 0 0;">No subjects found - add some under <a href="{{ url_for('admin.timetable_add') }}">Timetable</a> first.</p>
+            {% endif %}
+        </div>
+        <div>
+            <label for="course">Class / Section</label>
+            <input type="text" id="course" name="course" required placeholder="e.g. CSE-3A">
+        </div>
+        <div>
+            <button type="submit">Add</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Your Subjects</h3>
+    {% if assignments %}
+    <table>
+        <thead><tr><th>Subject</th><th>Class / Section</th><th></th></tr></thead>
+        <tbody>
+        {% for a in assignments %}
+            <tr>
+                <td>{{ a.subject }}</td>
+                <td>{{ a.course }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('admin.remove_my_subject', assignment_id=a.id) }}">
+                        <button type="submit" class="danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">You haven't added any subjects yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

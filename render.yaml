@@ -1,0 +1,67 @@
+# Render "Blueprint" - https://render.com/docs/blueprint-spec
+#
+# Deploy: push this repo to GitHub, then on Render choose
+# New -> Blueprint and point it at the repo. Render reads this file and
+# creates the web service (with a real persistent disk) automatically.
+#
+# Anything marked `sync: false` is a secret Render will prompt you to fill
+# in by hand in its dashboard rather than storing in this file/the repo.
+services:
+  - type: web
+    name: attendance-app
+    runtime: python
+    plan: starter  # the free plan has no persistent disk - a paid disk is
+                   # what actually solves the "data disappears" problem
+    buildCommand: pip install -r requirements.txt
+    startCommand: waitress-serve --host=0.0.0.0 --port=$PORT run:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /data/attendance.db
+      - key: UPLOAD_FOLDER
+        value: /data/uploads
+      - key: DEFAULT_ADMIN_USERNAME
+        sync: false
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+      - key: ATTENDANCE_THRESHOLD
+        value: "75"
+      - key: EXAM_ELIGIBILITY_THRESHOLD
+        value: "33"
+      - key: COLLEGE_NAME
+        value: "Attendance Management System"
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USE_TLS
+        value: "true"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_REGION
+        value: auto
+    disk:
+      name: attendance-data
+      mountPath: /data
+      sizeGB: 1

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Scan QR for Attendance{% endblock %}
+{% block content %}
+<h1>Scan QR for Attendance</h1>
+<p class="muted">Point your camera at the QR code your teacher is displaying, or type the code shown under it.</p>
+
+<div class="card">
+    <h3>Camera Scan</h3>
+    <video id="qr-video" class="qr-scan-video" playsinline muted hidden></video>
+    <canvas id="qr-canvas" hidden></canvas>
+    <div class="quick-actions" style="margin-top: 12px; justify-content: center;">
+        <button type="button" id="qr-start-btn">Start Camera</button>
+        <button type="button" id="qr-stop-btn" class="secondary" hidden>Stop Camera</button>
+    </div>
+    <p id="qr-camera-note" class="muted" style="text-align:center; margin-top:8px;"></p>
+</div>
+
+<div class="card">
+    <h3>Or Enter Code Manually</h3>
+    <form id="qr-manual-form" class="form-grid">
+        <div>
+            <label for="qr-code-input">Attendance Code</label>
+            <input type="text" id="qr-code-input" name="code" placeholder="Paste or type the session code" autocomplete="off">
+        </div>
+        <div>
+            <button type="submit">Verify Code</button>
+        </div>
+    </form>
+</div>
+
+<div id="qr-result" hidden></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+(function () {
+    "use strict";
+
+    var video = document.getElementById("qr-video");
+    var canvas = document.getElementById("qr-canvas");
+    var ctx = canvas.getContext("2d", { willReadFrequently: true });
+    var startBtn = document.getElementById("qr-start-btn");
+    var stopBtn = document.getElementById("qr-stop-btn");
+    var note = document.getElementById("qr-camera-note");
+    var resultBox = document.getElementById("qr-result");
+    var manualForm = document.getElementById("qr-manual-form");
+    var codeInput = document.getElementById("qr-code-input");
+
+    var stream = null;
+    var rafId = null;
+    var verifying = false;
+
+    function stopCamera() {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+        if (stream) {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            stream = null;
+        }
+        video.hidden = true;
+        stopBtn.hidden = true;
+        startBtn.hidden = false;
+    }
+
+    function tick() {
+        if (!stream) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA && !verifying) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var code = window.jsQR ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+            if (code && code.data) {
+                verifyCode(code.data);
+            }
+        }
+        rafId = requestAnimationFrame(tick);
+    }
+
+    startBtn.addEventListener("click", function () {
+        note.textContent = "";
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            note.textContent = "Camera access isn't available in this browser. Use the manual code entry below instead.";
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function (s) {
+                stream = s;
+                video.srcObject = s;
+                video.hidden = false;
+                startBtn.hidden = true;
+                stopBtn.hidden = false;
+                video.play();
+                rafId = requestAnimationFrame(tick);
+            })
+            .catch(function () {
+                note.textContent = "Could not access the camera. Please allow camera permission, or use the manual code entry below.";
+            });
+    });
+
+    stopBtn.addEventListener("click", stopCamera);
+
+    manualForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var code = codeInput.value.trim();
+        if (!code) {
+            window.showToast("Please enter an attendance code.", "error");
+            return;
+        }
+        verifyCode(code);
+    });
+
+    function renderResult(payload, ok) {
+        var cardClass = ok ? "success" : (payload.status === "already_marked" ? "warning" : "error");
+        var icon = ok ? "✅" : (payload.status === "already_marked" ? "⚠️" : "❌");
+        var title = ok ? "Attendance Marked Successfully" : payload.message;
+
+        var html = '<div class="qr-result-card ' + cardClass + '"><h3>' + icon + ' ' + title + '</h3>';
+        if (ok) {
+            html += '<dl class="kv">' +
+                '<div><dt>Subject</dt><dd>' + payload.subject + '</dd></div>' +
+                (payload.lecture ? '<div><dt>Lecture</dt><dd>' + payload.lecture + '</dd></div>' : '') +
+                '<div><dt>Date</dt><dd>' + payload.date + '</dd></div>' +
+                '<div><dt>Time</dt><dd>' + payload.time + '</dd></div>' +
+                '<div><dt>Status</dt><dd>Present</dd></div>' +
+                '</dl>';
+        }
+        html += '</div>';
+
+        resultBox.innerHTML = html;
+        resultBox.hidden = false;
+        resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        window.showToast(ok ? "Attendance marked successfully." : payload.message, ok ? "success" : "error");
+    }
+
+    function verifyCode(code) {
+        verifying = true;
+        fetch("{{ url_for('student.qr_verify') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code }),
+        })
+            .then(function (resp) { return resp.json().then(function (data) { return { status: resp.status, data: data }; }); })
+            .then(function (result) {
+                renderResult(result.data, !!result.data.ok);
+                if (result.data.ok) {
+                    stopCamera();
+                    codeInput.value = "";
+                }
+            })
+            .catch(function () {
+                window.showToast("Could not reach the server. Please try again.", "error");
+            })
+            .finally(function () {
+                verifying = false;
+            });
+    }
+})();
+</script>
+{% endblock %}

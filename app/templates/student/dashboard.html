@@ -1,21 +1,67 @@
 {% extends "base.html" %}
-{% block title %}My Attendance{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
 <h1>Welcome, {{ student.name }}</h1>
-<p class="muted">{{ student.reg_no }} &middot; {{ student.course }}</p>
+<div class="meta-row"><span>{{ student.reg_no }}</span><span>{{ student.course }}</span></div>
+
+{% if status != 'safe' and summary.total_classes > 0 %}
+<div class="status-banner status-{{ status }}">
+    <strong>{{ status_icon }} Attendance Alert</strong>
+    Your current attendance is {{ summary.percentage }}%. {{ message }}
+</div>
+{% endif %}
+
+{% if not exam_eligible and summary.total_classes > 0 %}
+<div class="status-banner status-critical">
+    <strong>🚫 Not Eligible for Exams</strong>
+    Your attendance ({{ summary.percentage }}%) is below the {{ exam_threshold|int }}% minimum required to sit for exams. Contact your teacher as soon as possible.
+</div>
+{% endif %}
 
 <div class="grid">
     <div class="stat"><div class="value">{{ summary.total_classes }}</div><div class="label">Classes Held</div></div>
     <div class="stat"><div class="value">{{ summary.attended_classes }}</div><div class="label">Classes Attended</div></div>
     <div class="stat">
-        <div class="value {{ 'badge-ok' if summary.meets_threshold else 'badge-low' }}">{{ summary.percentage }}%</div>
+        <div class="value {{ ('badge-ok' if summary.meets_threshold else 'badge-low') if summary.total_classes > 0 else '' }}">{{ summary.percentage }}%</div>
         <div class="label">Attendance</div>
+    </div>
+    <div class="stat">
+        {% if summary.total_classes > 0 %}
+        <div class="value badge-status-{{ status }}">{{ status_icon }} {{ status|title }}</div>
+        {% else %}
+        <div class="value badge">No Data</div>
+        {% endif %}
+        <div class="label">Status</div>
     </div>
 </div>
 
 <div class="card">
     <p>{{ message }}</p>
     <p class="muted">An email with this summary is sent to you automatically each time you mark attendance.</p>
+    <p><a class="btn secondary" href="{{ url_for('student.attendance_detail') }}">View detailed, subject-wise attendance</a></p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>75% Attendance Calculator</h3>
+    </div>
+    {% if summary.total_classes == 0 %}
+        <p class="muted">No classes have been held for your course yet.</p>
+    {% elif summary.meets_threshold %}
+        <p>&#9989; You can miss up to <strong>{{ summary.classes_can_skip }}</strong> more class{{ 'es' if summary.classes_can_skip != 1 else '' }} and still maintain {{ summary.threshold|int }}% attendance.</p>
+    {% else %}
+        <p>&#9888;&#65039; Your attendance is below {{ summary.threshold|int }}%.</p>
+        <p>Classes you need to attend continuously to reach {{ summary.threshold|int }}%: <strong>{{ summary.classes_to_attend_for_threshold }}</strong></p>
+        <p class="muted">If you attend the next {{ summary.classes_to_attend_for_threshold }} classes to reach {{ summary.threshold|int }}% attendance.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>QR Attendance</h3>
+    </div>
+    <p class="muted">Scan the QR code your teacher displays in class to mark yourself present instantly.</p>
+    <a class="btn" href="{{ url_for('student.qr_scan') }}">📷 Scan QR for Attendance</a>
 </div>
 
 <div class="card">
@@ -54,5 +100,21 @@
         {% endfor %}
         </tbody>
     </table>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>Leave Summary</h3>
+    </div>
+    <div class="grid">
+        <div class="stat"><div class="value">{{ leave_summary.total }}</div><div class="label">Total Leave Requests</div></div>
+        <div class="stat"><div class="value badge-pending">{{ leave_summary.pending }}</div><div class="label">Pending</div></div>
+        <div class="stat"><div class="value badge-ok">{{ leave_summary.approved }}</div><div class="label">Approved</div></div>
+        <div class="stat"><div class="value badge-low">{{ leave_summary.rejected }}</div><div class="label">Rejected</div></div>
+    </div>
+    <div class="quick-actions" style="margin-top: 16px;">
+        <a class="btn" href="{{ url_for('student.leave_apply') }}">Apply for Leave</a>
+        <a class="btn secondary" href="{{ url_for('student.leave_status') }}">Track Leave Status</a>
+    </div>
 </div>
 {% endblock %}

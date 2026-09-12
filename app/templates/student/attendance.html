@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}My Attendance{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>My Attendance</h1>
+    <a class="btn secondary" href="{{ url_for('student.attendance_export_pdf') }}">📄 Export PDF</a>
+</div>
+<div class="meta-row"><span>{{ student.name }}</span><span>{{ student.reg_no }}</span><span>{{ student.course }}</span></div>
+
+{% if status != 'safe' and overall.total > 0 %}
+<div class="status-banner status-{{ status }}">
+    <strong>{{ status_icon }} Attendance Alert</strong>
+    Your current attendance is {{ overall.percentage }}%. {{ message }}
+</div>
+{% endif %}
+
+{% if not exam_eligible and overall.total > 0 %}
+<div class="status-banner status-critical">
+    <strong>🚫 Not Eligible for Exams</strong>
+    Your attendance ({{ overall.percentage }}%) is below the {{ exam_threshold|int }}% minimum required to sit for exams. Contact your teacher as soon as possible.
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="section-header">
+        <h3>Overall Attendance</h3>
+        {% if overall.total > 0 %}
+        <span class="badge badge-status-{{ status }}">{{ status_icon }} {{ status|title }}</span>
+        {% else %}
+        <span class="badge">No Data</span>
+        {% endif %}
+    </div>
+    <div style="font-size: 2.4rem; font-weight: 700; margin: 4px 0 12px;">{{ overall.percentage }}%</div>
+    <div class="progress-track">
+        <div class="progress-fill {{ 'status-' + status if overall.total > 0 else '' }}" style="width: {{ overall.percentage if overall.percentage <= 100 else 100 }}%;"></div>
+    </div>
+    <div class="grid" style="margin-top: 16px;">
+        <div class="stat"><div class="value">{{ overall.total }}</div><div class="label">Total Classes</div></div>
+        <div class="stat"><div class="value">{{ overall.attended }}</div><div class="label">Attended</div></div>
+        <div class="stat"><div class="value">{{ overall.missed }}</div><div class="label">Missed</div></div>
+        <div class="stat"><div class="value">{{ overall.percentage }}%</div><div class="label">Attendance</div></div>
+        <div class="stat">
+            <div class="value {{ 'badge-ok' if exam_eligible else 'badge-low' }}">{{ 'Eligible' if exam_eligible else 'Ineligible' }}</div>
+            <div class="label">Exam Eligibility ({{ exam_threshold|int }}%)</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <h3>75% Attendance Calculator</h3>
+    </div>
+    {% if summary.total_classes == 0 %}
+        <p class="muted">No classes have been held for your course yet.</p>
+    {% elif summary.meets_threshold %}
+        <p>&#9989; You can miss up to <strong>{{ summary.classes_can_skip }}</strong> more class{{ 'es' if summary.classes_can_skip != 1 else '' }} and still maintain {{ threshold|int }}% attendance.</p>
+    {% else %}
+        <p>&#9888;&#65039; Your attendance is below {{ threshold|int }}%.</p>
+        <p>Classes you need to attend continuously to reach {{ threshold|int }}%: <strong>{{ summary.classes_to_attend_for_threshold }}</strong></p>
+        <p class="muted">If you attend the next {{ summary.classes_to_attend_for_threshold }} classes to reach {{ threshold|int }}% attendance.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Subject-wise Attendance</h3>
+    {% if subject_rows %}
+    <table>
+        <thead>
+            <tr><th>Subject</th><th>Total Classes</th><th>Attended</th><th>Missed</th><th>Percentage</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+        {% for row in subject_rows %}
+            <tr>
+                <td>{{ row.subject }}</td>
+                <td>{{ row.total }}</td>
+                <td>{{ row.attended }}</td>
+                <td>{{ row.missed }}</td>
+                <td style="min-width:140px;">
+                    <div class="progress-track" style="margin-bottom:4px;">
+                        <div class="progress-fill status-{{ row.status }}" style="width: {{ row.percentage if row.percentage <= 100 else 100 }}%;"></div>
+                    </div>
+                    {{ row.percentage }}%
+                </td>
+                <td>
+                    <span class="badge badge-status-{{ row.status }}">
+                        {{ '🟢 Safe' if row.status == 'safe' else ('🟡 Warning' if row.status == 'warning' else '🔴 At Risk') }}
+                    </span>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="muted">No classes have been held yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No classes have been held yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

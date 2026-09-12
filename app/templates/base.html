@@ -8,12 +8,19 @@
             var theme = "dark";
             try {
                 var saved = localStorage.getItem("theme");
-                if (saved === "light" || saved === "dark") theme = saved;
+                if (saved === "light" || saved === "dark") {
+                    theme = saved;
+                } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+                    theme = "light";
+                }
             } catch (e) {}
             document.documentElement.setAttribute("data-theme", theme);
         })();
     </script>
     <title>{% block title %}Attendance Management System{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -25,10 +32,45 @@
                 <a href="{{ url_for('admin.students') }}">Students</a>
                 <a href="{{ url_for('admin.sessions') }}">Class Sessions</a>
                 <a href="{{ url_for('admin.reports') }}">Reports</a>
-                <span class="whoami">{{ session.get('display_name') }} (admin)</span>
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-dropdown-toggle">More ▾</button>
+                    <div class="nav-dropdown-menu" hidden>
+                        <a href="{{ url_for('admin.leaves') }}">Leave Requests</a>
+                        <a href="{{ url_for('admin.stats') }}">Statistics</a>
+                        <a href="{{ url_for('admin.qr_list') }}">QR Attendance</a>
+                        <a href="{{ url_for('admin.whatsapp_groups') }}">WhatsApp Groups</a>
+                        <a href="{{ url_for('admin.holidays') }}">Holidays</a>
+                        <a href="{{ url_for('admin.timetable') }}">Timetable</a>
+                        <a href="{{ url_for('admin.notices') }}">Notices</a>
+                        <a href="{{ url_for('admin.my_subjects') }}">My Subjects</a>
+                        <a href="{{ url_for('admin.students_import') }}">Import Students</a>
+                        {% if session.get('admin_role') == 'super_admin' %}
+                        <a href="{{ url_for('admin.teachers') }}">Manage Teachers</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ url_for('admin.signups') }}" class="bell-link">
+                    Sign-Ups{% if pending_signups %}<span class="bell-badge">{{ pending_signups }}</span>{% endif %}
+                </a>
+                <span class="whoami">{{ session.get('display_name') }} ({{ 'super admin' if session.get('admin_role') == 'super_admin' else 'teacher' }})</span>
                 <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% elif session.get('role') == 'student' %}
-                <a href="{{ url_for('student.dashboard') }}">My Attendance</a>
+                <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('student.attendance_detail') }}">My Attendance</a>
+                <a href="{{ url_for('student.qr_scan') }}">Scan QR</a>
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-dropdown-toggle">More ▾</button>
+                    <div class="nav-dropdown-menu" hidden>
+                        <a href="{{ url_for('student.leave_apply') }}">Apply for Leave</a>
+                        <a href="{{ url_for('student.leave_status') }}">Leave Status</a>
+                        <a href="{{ url_for('student.timetable') }}">Timetable</a>
+                        <a href="{{ url_for('student.holidays') }}">Holidays</a>
+                        <a href="{{ url_for('student.notices') }}">Notices</a>
+                    </div>
+                </div>
+                <a href="{{ url_for('student.notifications') }}" class="bell-link">
+                    🔔{% if unread_notifications %}<span class="bell-badge">{{ unread_notifications }}</span>{% endif %}
+                </a>
                 <span class="whoami">{{ session.get('display_name') }} ({{ session.get('reg_no') }})</span>
                 <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% endif %}
@@ -50,6 +92,9 @@
         {% block content %}{% endblock %}
     </main>
 
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

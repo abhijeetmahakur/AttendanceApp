@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if entry else 'Add' }} Timetable Entry{% endblock %}
+{% block content %}
+<h1>{{ 'Edit' if entry else 'Add' }} Timetable Entry</h1>
+
+<div class="card">
+    <form method="post" class="form-grid">
+        <div>
+            <label for="course">Class / Section</label>
+            <input type="text" id="course" name="course" required placeholder="e.g. 24E1G2" value="{{ entry.course if entry else '' }}">
+        </div>
+        <div>
+            <label for="semester_label">Semester Label</label>
+            <input type="text" id="semester_label" name="semester_label" placeholder="e.g. 5th Semester B.Tech - Odd Semester 2026" value="{{ entry.semester_label if entry else '' }}">
+        </div>
+        <div>
+            <label for="room">Room</label>
+            <input type="text" id="room" name="room" placeholder="e.g. C-111" value="{{ entry.room if entry else '' }}">
+        </div>
+        <div>
+            <label for="day_of_week">Day</label>
+            <select id="day_of_week" name="day_of_week" required>
+                {% for d in days %}
+                    <option value="{{ d }}" {{ 'selected' if entry and entry.day_of_week == d }}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="start_time">Start Time</label>
+            <input type="time" id="start_time" name="start_time" required value="{{ entry.start_time if entry else '' }}">
+        </div>
+        <div>
+            <label for="end_time">End Time</label>
+            <input type="time" id="end_time" name="end_time" required value="{{ entry.end_time if entry else '' }}">
+        </div>
+        <div>
+            <label for="subject_code">Subject Code</label>
+            <input type="text" id="subject_code" name="subject_code" placeholder="e.g. CN" value="{{ entry.subject_code if entry else '' }}">
+        </div>
+        <div>
+            <label for="subject_name">Subject Name</label>
+            <input type="text" id="subject_name" name="subject_name" required placeholder="e.g. Computer Networking: Concepts" value="{{ entry.subject_name if entry else '' }}">
+        </div>
+        <div>
+            <label for="faculty">Faculty</label>
+            <input type="text" id="faculty" name="faculty" value="{{ entry.faculty if entry else '' }}">
+        </div>
+        <div>
+            <button type="submit">{{ 'Save Changes' if entry else 'Add Entry' }}</button>
+            <a class="btn secondary" href="{{ url_for('admin.timetable') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

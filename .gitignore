@@ -2,5 +2,10 @@ __pycache__/
 *.pyc
 .env
 instance/*.db
+instance/*.db.backup-*
+instance/uploads/
+
+# Real student roster exports - contain personal data, never commit these
+*Student Information Form*.csv
 .venv/
 venv/
