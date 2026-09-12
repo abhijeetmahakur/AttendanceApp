@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="landing-body">
+
+    <nav class="landing-nav">
+        <a class="brand" href="{{ url_for('auth.index') }}">ATTENDANCE<span>.</span></a>
+        <a class="login-link" href="{{ url_for('auth.login') }}">Login</a>
+    </nav>
+
+    <header class="hero">
+        <div class="eyebrow">
+            <span class="line"></span>
+            <span class="label">Attendance Management System</span>
+            <span class="line right"></span>
+        </div>
+        <h1>Never lose track of <span class="accent">who showed up</span></h1>
+        <p class="sub">
+            Time-windowed attendance, registration-number logins, automatic email
+            summaries, and 75% threshold guidance - all in one place for admins
+            and students.
+        </p>
+        <div class="cta-row">
+            <a class="btn-gold" href="{{ url_for('auth.login') }}">Admin Login</a>
+            <a class="btn-ghost" href="{{ url_for('auth.login') }}">Student Login</a>
+        </div>
+    </header>
+
+    <section class="coverflow-section" data-coverflow>
+        <div class="coverflow-bg">
+            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1600&q=80&auto=format&fit=crop" alt="">
+            <div class="veil"></div>
+        </div>
+
+        <div class="coverflow-inner">
+            <div class="coverflow-eyebrow">
+                <span class="line"></span>
+                <h3>Built For</h3>
+                <span class="line right"></span>
+            </div>
+
+            <div class="coverflow-stage"></div>
+
+            <button class="coverflow-arrow prev" aria-label="Previous feature"></button>
+            <button class="coverflow-arrow next" aria-label="Next feature"></button>
+
+            <div class="coverflow-dots"></div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        &copy; Attendance Management System
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/coverflow.js') }}"></script>
+</body>
+</html>
