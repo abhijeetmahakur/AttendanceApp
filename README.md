@@ -67,9 +67,11 @@ Edit `.env`:
 python run.py
 ```
 
-Visit http://127.0.0.1:5000. On first run, a default super admin account is
-created and printed to the console (`admin` / `admin123` unless overridden
-in `.env`) — log in, create teacher accounts and/or students, and go.
+Visit http://127.0.0.1:5000. On an empty database, the app creates a
+super-admin account from `DEFAULT_ADMIN_USERNAME` and `DEFAULT_ADMIN_PASSWORD`
+and writes the initial credentials to application logs. Set unique values in
+`.env` before first run, protect those logs, and change the password after
+sign-in. Do not expose an instance using the development fallback values.
 
 ## Deployment
 
