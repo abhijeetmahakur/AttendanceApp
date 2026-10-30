@@ -3,7 +3,7 @@ Flask-Mail==0.10.0
 Werkzeug==3.1.8
 python-dotenv==1.0.1
 openpyxl==3.1.5
-reportlab==5.0.1
+reportlab==5.1.0
 qrcode==8.2
 Pillow==12.3.0
 boto3==1.43.93
